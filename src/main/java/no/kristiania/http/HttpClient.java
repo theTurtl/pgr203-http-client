@@ -3,7 +3,6 @@ package no.kristiania.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import java.sql.SQLOutput;
 import java.util.HashMap;
 
 public class HttpClient {
