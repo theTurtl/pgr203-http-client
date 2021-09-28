@@ -109,4 +109,12 @@ public class HttpClient {
     public String getHeader(String s) {
         return headerFields.get(s);
     }
+
+    public int getContentLenght() {
+        return Integer.parseInt(getHeader("Content-Length"));
+    }
+
+    public String getMessageBody() {
+        return "";
+    }
 }
