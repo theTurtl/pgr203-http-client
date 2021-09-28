@@ -4,11 +4,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.sql.SQLOutput;
+import java.util.HashMap;
 
 public class HttpClient {
 
     //private final int statusCode;
     private final int statusCodeVer2;
+    //HashMap er en fin måte å lagre sammenhengende informasjon på, hvor en kan finne informasjon ved å søke
+    //etter sammenhengende informasjon. headerFields her er navnet på hver header. På denne måten kan du søke etter
+    //bestemte headere, og alltid få sammenhengende informasjon som tilhører bestemte header.
+    private final HashMap<String, String> headerFields = new HashMap<>();
 
     public HttpClient(String host, int port, String requestTarget) throws IOException {
         Socket socket = new Socket(host, port);
@@ -21,6 +26,9 @@ public class HttpClient {
                         "\r\n").getBytes()
         );
 
+        //Dette er et eksempel på en kode som vil legge inn et sammenhengende datasett i opprettet HashMap.
+        //headerFields.put("Content-Type", "text/html; charset=utf-8");
+
         //Med stringBuilder så kan en legge kontinuerlig legge en inn input.
         //Her gjør vi det for ytelse, da det kontant vil komme inn ny input fra InputStream
         //Her vil altså bytsene lest av while loopen komme. Igjen, i form av bytes (ASCII numre).
@@ -28,6 +36,24 @@ public class HttpClient {
 
         //Her tar vi imot "HTTP/1.1 200 OK"
         String statusLine = readLine(socket);
+
+        //Opretter en ny variabel som lagrer String
+        String headerLine;
+        //Denne while løkken vil lese av alle headere til en blank linje oppstår, slik som HTTP protokollen tilsier.
+        while (!(headerLine = readLine(socket)).isBlank()) {
+            //Her finner definerer vi indexen for hvor kolon oppstår i input. Ettersom verdien av alle headere
+            //kommer etter en kolonn, så kan vi på denne måten skille disse to verdiene (header, headerVerdi)
+            int colonPos = headerLine.indexOf(':');
+            //Her definerer vi hvilke verdier som hører til hva
+            //trim() brukes for å fjerne whitespace, noe som er viktig for korrekt lesing av verdi!
+            String key = headerLine.substring(0, colonPos).trim();
+            //Samme her.
+            String value = headerLine.substring(colonPos+1).trim();
+            //Deretter hiver vi disse verdiene i HashMap headerFields!
+            headerFields.put(key, value);
+        }
+
+
         //Her blir "HTTP/1.1 200 OK" gjort om til en array, hvor array.[1] (som er "200") parset til Int.
         //Deretter blir den returnert til variabelen statusCodeVer2.
         this.statusCodeVer2 = Integer.parseInt(statusLine.split(" ")[1]);
@@ -81,6 +107,6 @@ public class HttpClient {
 
 
     public String getHeader(String s) {
-        return null;
+        return headerFields.get(s);
     }
 }
