@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 public class HttpClient {
 
+
     //private final int statusCode;
     private final int statusCodeVer2;
     //HashMap er en fin måte å lagre sammenhengende informasjon på, hvor en kan finne informasjon ved å søke
@@ -19,12 +20,24 @@ public class HttpClient {
         Socket socket = new Socket(host, port);
 
 
+
+    private final int statusCodeVer2;
+
+    private final HashMap<String, String> headerFields = new HashMap<>();
+    private final String messageBody;
+
+    public HttpClient(String host, int port, String requestTarget) throws IOException {
+        Socket socket = new Socket(host, port);
+
+
+
         socket.getOutputStream().write(
                 ("GET " + requestTarget + " HTTP/1.1\r\n" +
                         "Connection: close\r\n" +
                         "Host: " + host + "\r\n" +
                         "\r\n").getBytes()
         );
+
 
         //Dette er et eksempel på en kode som vil legge inn et sammenhengende datasett i opprettet HashMap.
         //headerFields.put("Content-Type", "text/html; charset=utf-8");
@@ -79,6 +92,27 @@ public class HttpClient {
         //Dette passser overens, da statuskoden som hentes fra server kommer rett etter requestTarget (HTTP/1.1).
         //Deretter plasserer vi denne verdien til en egen variabel, som vi kan senere returnere ved bruk (her: test klassen)
         //this.statusCode = Integer.parseInt(responseMessage.split(" ")[1]);
+
+        String statusLine = readLine(socket);
+
+
+        String headerLine;
+
+        while (!(headerLine = readLine(socket)).isBlank()) {
+            int colonPos = headerLine.indexOf(':');
+            String key = headerLine.substring(0, colonPos).trim();
+            String value = headerLine.substring(colonPos+1).trim();
+            headerFields.put(key, value);
+        }
+
+        this.messageBody = readCharacters(socket, getContentLength());
+
+
+
+        this.statusCodeVer2 = Integer.parseInt(statusLine.split(" ")[1]);
+
+
+
     }
 
     private String readCharacters(Socket socket, int contentLength) throws IOException {
@@ -97,6 +131,7 @@ public class HttpClient {
 
         int c;
 
+
         //Så lenge c (bytes) ikke er lik -1 og ikke starter fra start, så vil den fortsette å lese c.
         //Denen while loopen vil stoppe når InputStream in begynner på ny HTTP header (hver header begynner på linjestrat).
         //Derfor vil c her være = "HTTP/1.1 200 OK", bare i ASCII tall (bytes).
@@ -111,7 +146,16 @@ public class HttpClient {
     public static void main(String[] args) throws IOException {
         Socket socket = new Socket("httpbin.org", 80);
 
+
+        while ((c = in.read()) != -1 && c != '\r') {
+
+            result.append((char)c);
+        }
+
+        return result.toString();
     }
+
+
 
     public int getStatusCode() {
         return statusCodeVer2;
@@ -122,7 +166,11 @@ public class HttpClient {
         return headerFields.get(s);
     }
 
+
     public int getContentLenght() {
+
+    public int getContentLength() {
+
         return Integer.parseInt(getHeader("Content-Length"));
     }
 
