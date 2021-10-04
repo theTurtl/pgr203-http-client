@@ -37,7 +37,7 @@ public class HttpClient {
         //Her tar vi imot "HTTP/1.1 200 OK"
         String statusLine = readLine(socket);
 
-        //Opretter en ny variabel som lagrer String
+        //Opretter en ny variabel som lagrer String.
         String headerLine;
         //Denne while løkken vil lese av alle headere til en blank linje oppstår, slik som HTTP protokollen tilsier.
         while (!(headerLine = readLine(socket)).isBlank()) {
